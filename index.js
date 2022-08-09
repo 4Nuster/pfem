@@ -88,7 +88,8 @@ app.post('/api/dataset', (req, res) => {
     (async () => {
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
-        await page.goto('http://localhost:5000/virtual/dataset/');
+        //await page.goto('http://localhost:5000/virtual/dataset/');
+        await page.goto('https://warm-ridge-00774.herokuapp.com/virtual/dataset/');
 
         //console.log(await page.evaluate('ml5.version'));
         page.on('console', msg => console.log('>', msg.text()));
@@ -117,7 +118,8 @@ app.post('/api/predict', (req, res) => {
     (async () => {
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
-        await page.goto('http://localhost:5000/virtual/predict');
+        //await page.goto('http://localhost:5000/virtual/predict');
+        await page.goto('https://warm-ridge-00774.herokuapp.com/virtual/predict');
 
         page.on('console', msg => console.log('>', msg.text()));
         try{

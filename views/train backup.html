@@ -26,7 +26,8 @@
             let circles = [], stars = [], sinuses = [];
 
             (async () => {
-                let json = await fetch('http://localhost:5000/api/indeces');
+                //let json = await fetch('http://localhost:5000/api/indeces');
+                let json = await fetch('https://warm-ridge-00774.herokuapp.com/api/indeces');
                 json = await json.json();
                 num_circles = json["circles"] - 1;
                 num_stars = json["stars"] - 1;

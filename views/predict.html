@@ -17,7 +17,8 @@
         background(100, 100, 255);
         (async () => {
           //getting input
-          inputArray = await fetch('http://localhost:5000/api/input');
+          //inputArray = await fetch('http://localhost:5000/api/input');
+          inputArray = await fetch('https://warm-ridge-00774.herokuapp.com/api/input');
           inputArray = await inputArray.json();
           inputArray = inputArray['input'];
           console.log(typeof inputArray[0]);

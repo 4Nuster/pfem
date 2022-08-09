@@ -19,7 +19,8 @@
         background(100, 100, 255);
         (async () => {
           //getting input
-          inputArray = await fetch('http://localhost:5000/api/input');
+          //inputArray = await fetch('http://localhost:5000/api/input');
+          inputArray = await fetch('https://warm-ridge-00774.herokuapp.com/api/input');
           inputArray = await inputArray.json();
           inputArray = inputArray['input'];
 
@@ -49,7 +50,8 @@
           inputImage.endShape();
           inputImageScaled.copy(inputImage, 0, 0, 400, 400, 0, 0, 64, 64);
 
-          let label = await fetch('http://localhost:5000/api/label');
+          //let label = await fetch('http://localhost:5000/api/label');
+          let label = await fetch('https://warm-ridge-00774.herokuapp.com/api/label');
           label = await label.json();
           label = label['label'] + nf(label['index'], 4, 0);
           console.log(label);
