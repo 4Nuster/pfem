@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,5 +18,8 @@
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
     "puppeteer": "^13.7.0"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }

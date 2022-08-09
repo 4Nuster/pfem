@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>training</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="views/jquery-3.6.0.min.js"></script>
+        <script src="views/p5.min.js"></script>
+        <script src="views/ml5.min.js"></script>
+        <script src="views/d3.js"></script>
+    </head>
+
+    <body>
+        <h1>Admin interface</h1>
+        <h2 id="dataset">Dataset size: 0 items</h2>
+        <div id="graph"></div>
+        <!--<h2 id="circles">Circle items: 0 items</h2>
+        <h2 id="stars">Star items: 0 items</h2>
+        <h2 id="sinuses">Sinus items: 0 items</h2>-->
+        <h2 id="news">New items: 0 items</h2>
+        
+        <a href="C:/Users/Lenovo/Desktop/PFEM fr fr/ml5testv3/dataset"><button>Browse dataset</button></a>
+    </body>
+    <script>
+        function setup(){
+            let num_circles, num_stars, num_sinuses, num_news;
+            let circles = [], stars = [], sinuses = [];
+
+            (async () => {
+                let json = await fetch('http://localhost:5000/api/indeces');
+                json = await json.json();
+                num_circles = json["circles"] - 1;
+                num_stars = json["stars"] - 1;
+                num_sinuses = json["sinuses"] - 1;
+                num_news = json["news"];
+
+                var h = 500, w = 500, padding = 50;
+                var svg = d3.select("#graph").append("svg").attr("width", w + padding * 2).attr("height", h + padding * 2);
+
+                // X axis
+                var x = d3.scaleBand()
+                .range([0, w])
+                .domain(["circles", "stars", "sinuses"].map(d => d))
+                .padding(0.2);
+                svg.append("g")
+                .attr("transform", "translate("+padding+"," + h + ")")
+                .call(d3.axisBottom(x))
+
+                // Y axis
+                var y = d3.scaleLinear()
+                .domain([0, d3.max([num_circles, num_stars, num_sinuses], d => d) + 3])
+                .range([h, 0]);
+                svg.append("g")
+                .attr("transform", "translate("+padding+", 0)")
+                .call(d3.axisLeft(y)
+                .ticks(5));
+
+                const color_code = {
+                    "circles": "#ff3333",
+                    "stars": "#1fed37",
+                    "sinuses": "#3ca8da"
+                };
+
+                svg.selectAll("rect")
+                .data([["circles", num_circles], ["stars", num_stars], ["sinuses", num_sinuses]])
+                .enter()
+                .append("rect")
+                .attr("x", function(d) { return x(d[0]) + padding; })
+                .attr("width", x.bandwidth())
+                .attr("fill", d => color_code[d[0]])
+                //.attr("height", function(d) { return h - y(d[1]); })
+                //.attr("y", function(d) { return y(d[1]); });
+                .attr("height", function(d){return h - y(0);})
+                .attr("y", function(d){return y(0);})
+
+                svg.selectAll("rect")
+                .transition()
+	    	    .duration(1000)
+                .attr("y", function(d) { return y(d[1]); })
+                .attr("height", function(d) { return h - y(d[1]); })
+		        .delay(function(d){return d[1] * 10;});
+
+            
+                document.getElementById("dataset").innerHTML = `Dataset size: ${num_circles + num_stars + num_sinuses} items`;
+                //document.getElementById("circles").innerHTML = `Circle items: ${num_circles} items`;
+                //document.getElementById("stars").innerHTML = `Star items: ${num_stars} items`;
+                //document.getElementById("sinuses").innerHTML = `Sinus items: ${num_sinuses} items`;
+                document.getElementById("news").innerHTML = `New items: ${num_news} items`;
+
+                for(let i=0; i<num_circles; i++){
+                    let index = nf(i+1, 4, 0);
+                    circles[i] = loadImage(`dataset/circle${index}.png`);
+                }
+                for(let i=0; i<num_stars; i++){
+                    let index = nf(i+1, 4, 0);
+                    stars[i] = loadImage(`dataset/square${index}.png`);
+                }
+                for(let i=0; i<num_sinuses; i++){
+                    let index = nf(i+1, 4, 0);
+                    sinuses[i] = loadImage(`dataset/triangle${index}.png`);
+                }
+            
+                console.log(circles.length);
+                console.log(num_circles);
+                console.log(circles[0]);
+
+                createCanvas(400, 400);
+                background(0);
+                image(circles[0], 0, 0, width, height);
+                trainButton = createButton('Train');
+                trainButton.mousePressed(() => {
+                    let options = {
+                        inputs: [64, 64, 4],
+                        task: 'imageClassification',
+                        debug: true
+                    };
+                    let shapeClassifier = ml5.neuralNetwork(options);
+
+                    for(let i=0; i<num_circles; i++) shapeClassifier.addData({image: circles[i]}, {label: 'circle'});
+                    for(let i=0; i<num_stars; i++)   shapeClassifier.addData({image: stars[i]}, {label: 'star'});
+                    for(let i=0; i<num_sinuses; i++) shapeClassifier.addData({image: sinuses[i]}, {label: 'sinus'});
+
+                    shapeClassifier.normalizeData();
+                    shapeClassifier.train({epochs: 50}, () => {
+                        console.log('finished training');
+                        shapeClassifier.save();
+                    });
+                });
+            })();
+        }
+    </script>
+</html>
