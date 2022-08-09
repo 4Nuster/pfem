@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>prediction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
+    <script src="https://unpkg.com/ml5@0.6.0/dist/ml5.min.js"></script>
+    <script src="../../views/d3.js"></script>
+  </head>
+
+  <body>
+    <script>
+      let inputArray, output, acc, inputImage, shapeClassifier, inputImageScaled;
+      let ax = [], ay = [];
+      function setup(){
+        createCanvas(720, 400);
+        background(100, 100, 255);
+        (async () => {
+          //getting input
+          inputArray = await fetch('http://localhost:5000/api/input');
+          inputArray = await inputArray.json();
+          inputArray = inputArray['input'];
+          console.log(typeof inputArray[0]);
+          inputArray = inputArray.map(d => parseFloat(d));
+          for (let i = 0; i < inputArray.length; i++) {
+            if(i % 2 == 0) ax.push(inputArray[i]);
+            else ay.push(inputArray[i]);
+          }
+          
+          console.log(Math.min(...inputArray));
+          console.log()
+          console.log(Math.max(...inputArray));
+          //let scale = d3.scaleLinear().domain([Math.min(...inputArray), Math.max(...inputArray)]).range([0, 399]);
+          let scaleX = d3.scaleLinear().domain([Math.min(...ax), Math.max(...ax)]).range([0, 399]);
+          let scaleY = d3.scaleLinear().domain([Math.min(...ay), Math.max(...ay)]).range([0, 399]);
+
+          let temp = [...inputArray].sort((a, b) => a-b);
+          
+          console.log(temp);
+          console.log("mins:");
+          console.log(scaleX(temp[0]));
+          console.log(scaleX(temp[1]));
+          console.log(scaleX(temp[2]));
+          temp.reverse();
+          console.log("maxs:");
+          console.log(scaleX(temp[0]));
+          console.log(scaleX(temp[1]));
+          console.log(scaleX(temp[2]));
+          console.log("min and max:");
+          //console.log(scale(Math.min(...inputArray)));
+          //console.log(scale(Math.max(...inputArray)));
+          //generating image
+          inputImage = createGraphics(400, 400);
+          inputImageScaled = createGraphics(64, 64);
+
+          inputImage.background(255);
+          inputImage.stroke(0, 0, 255);
+          inputImage.strokeWeight(3);
+          inputImage.noFill();
+          inputImage.beginShape();
+          for (let i = 0; i < inputArray.length; i+=2) inputImage.vertex(scaleX(ax[i]), scaleY(ay[i]));
+          /*inputArray.forEach(element => {
+            inputImage.vertex(element[0], element[1]);
+          });*/
+          inputImage.endShape();
+
+          inputImageScaled.copy(inputImage, 0, 0, 400, 400, 0, 0, 64, 64);
+          //loading model
+          let options = {
+            inputs: [64, 64, 4],
+            task: 'imageClassification'
+          };
+          shapeClassifier = ml5.neuralNetwork(options);
+          const modelDetails = {
+            model: '/model/model.json',
+            metadata: '/model/model_meta.json',
+            weights: '/model/model.weights.bin'
+          };
+          shapeClassifier.load(modelDetails, modelLoaded);
+        })();
+      }
+
+      function modelLoaded() {
+        console.log('model ready!');
+        image(inputImage, 0, 0);
+        shapeClassifier.classify({image: inputImageScaled}, gotResults);
+      }
+
+      function gotResults(err, results) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log('output is ', results[0].label);
+        output = results[0].label;
+        console.log('acc=', results[0].confidence);
+        acc = results[0].confidence;
+        //let confidence = nf(100 * results[0].confidence, 2, 0);
+
+        //resultsDiv.html(`${label} ${confidence}%`);
+        done = document.getElementById("done").style.display="block"
+      }
+
+    </script>
+    <p id="done" style="display: none;">Done!</p>
+  </body>
+</html>
