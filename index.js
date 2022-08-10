@@ -86,7 +86,12 @@ app.post('/api/dataset', (req, res) => {
     label = Object.keys(req.body)[0];
     input = req.body[label];
     (async () => {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            'args' : [
+              '--no-sandbox',
+              '--disable-setuid-sandbox'
+            ]
+          });
         const page = await browser.newPage();
         //await page.goto('http://localhost:5000/virtual/dataset/');
         await page.goto('https://warm-ridge-00774.herokuapp.com/virtual/dataset/');
@@ -116,7 +121,12 @@ app.post('/api/predict', (req, res) => {
     let result = 0;
     let accuracy = 0;
     (async () => {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            'args' : [
+              '--no-sandbox',
+              '--disable-setuid-sandbox'
+            ]
+          });
         const page = await browser.newPage();
         //await page.goto('http://localhost:5000/virtual/predict');
         await page.goto('https://warm-ridge-00774.herokuapp.com/virtual/predict');
